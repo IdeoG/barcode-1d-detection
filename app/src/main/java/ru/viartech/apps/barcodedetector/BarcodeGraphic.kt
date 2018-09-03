@@ -49,10 +49,7 @@ class BarcodeGraphic(overlay: GraphicOverlay) : GraphicOverlay.Graphic(overlay) 
                 x1, y1, x2, y2, x3, y3, x4, y4)
 
         drawTrapeze(canvas, _boxPaint, x1, y1, x2, y2, x3, y3, x4, y4)
-    }
 
-    companion object {
-        private const val BOX_STROKE_WIDTH = 5.0f
     }
 
     private fun drawScaledTrapeze(canvas: Canvas, paint: Paint, scaleX: Float, scaleY: Float,
@@ -86,5 +83,18 @@ class BarcodeGraphic(overlay: GraphicOverlay) : GraphicOverlay.Graphic(overlay) 
         path.close()
 
         canvas.drawPath(path, paint)
+    }
+
+    private fun drawCircles(canvas: Canvas, paint: Paint, radius: Float,
+                            x1: Float, y1: Float, x2: Float, y2: Float,
+                            x3: Float, y3: Float, x4: Float, y4: Float) {
+        canvas.drawCircle(x1, y1, radius, paint)
+        canvas.drawCircle(x2, y2, radius, paint)
+        canvas.drawCircle(x3, y3, radius, paint)
+        canvas.drawCircle(x4, y4, radius, paint)
+    }
+
+    companion object {
+        private const val BOX_STROKE_WIDTH = 2.0f
     }
 }
