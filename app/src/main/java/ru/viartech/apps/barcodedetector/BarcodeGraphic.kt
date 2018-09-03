@@ -45,10 +45,8 @@ class BarcodeGraphic(overlay: GraphicOverlay) : GraphicOverlay.Graphic(overlay) 
         val y4 = translateY(rect[3].y.toFloat())
 
         drawTrapeze(canvas, _filledBoxPaint,
-                x1, y1,
-                x2, y2,
-                x3, y3,
-                x4, y4)
+                x1, y1, x2, y2,
+                x3, y3, x4, y4)
     }
 
     companion object {

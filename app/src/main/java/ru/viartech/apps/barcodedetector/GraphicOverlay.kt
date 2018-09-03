@@ -58,20 +58,8 @@ class GraphicOverlay(context: Context, attrs: AttributeSet) : View(context, attr
         postInvalidate()
     }
 
-    fun remove(graphic: Graphic) {
-        synchronized(mLock) {
-            mGraphics.remove(graphic)
-        }
-        postInvalidate()
-    }
-
-    fun setCameraInfo(previewWidth: Int, previewHeight: Int, facing: Facing) {
-        synchronized(mLock) {
-            mPreviewWidth = previewWidth
-            mPreviewHeight = previewHeight
-            mFacing = facing
-        }
-        postInvalidate()
+    fun isClear(): Boolean {
+        return mGraphics.size == 0
     }
 
     override fun onDraw(canvas: Canvas) {

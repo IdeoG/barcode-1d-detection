@@ -100,19 +100,18 @@ class DetectionActivity : AppCompatActivity() {
                         }
                         else {
                             val barcode = barcodes[0]
-                            _barcodeGraphic.updateBarcode(barcode)
 
                             val width = barcode.boundingBox!!.width()
                             val height = barcode.boundingBox!!.height()
 
-                            Log.i(TAG, "detectInImage: scale debug -> (w,h) = ($width,$height);")
 
                             if (height / width.toFloat() > 0.3f) {
-                                camera_overlay.clear()
-                                camera_overlay.add(_barcodeGraphic)
-
+                                if (camera_overlay.isClear()) camera_overlay.add(_barcodeGraphic)
                                 _missedBarcodeFrames = 0
 
+                                _barcodeGraphic.updateBarcode(barcode)
+
+                                Log.i(TAG, "detectInImage: scale debug -> (w,h) = ($width,$height);")
                                 this@DetectionActivity.runOnUiThread { barcode_value.text = barcode.displayValue }
                             }
                         }
@@ -130,7 +129,9 @@ class DetectionActivity : AppCompatActivity() {
         FirebaseApp.initializeApp(this)
 
         val options = FirebaseVisionBarcodeDetectorOptions.Builder()
-                .setBarcodeFormats(FirebaseVisionBarcode.FORMAT_EAN_13)
+                .setBarcodeFormats(
+                        FirebaseVisionBarcode.FORMAT_EAN_13,
+                        FirebaseVisionBarcode.FORMAT_EAN_8)
                 .build()
 
         _detector = FirebaseVision.getInstance().getVisionBarcodeDetector(options)
