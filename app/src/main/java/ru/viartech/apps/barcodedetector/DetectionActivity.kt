@@ -69,7 +69,7 @@ class DetectionActivity : AppCompatActivity() {
 
             Log.d(TAG, "configureCameraView: frame = ${frame.format}, ${frame.rotation}")
 
-            if (it.format == -1) {
+            if (frame.format == -1) {
                 Log.d(TAG, "configureCameraView: invalid format")
                 return@addFrameProcessor
             }
@@ -94,7 +94,7 @@ class DetectionActivity : AppCompatActivity() {
                                 _missedBarcodeFrames = 0
                                 camera_overlay.clear()
                             }
-                            Log.d(TAG, "configureCameraView -> no value detected.")
+                            Log.d(TAG, "detectInImage -> no value detected.")
                             this@DetectionActivity.runOnUiThread { barcode_value.text = "" }
 
                         }
@@ -105,7 +105,7 @@ class DetectionActivity : AppCompatActivity() {
                             val width = barcode.boundingBox!!.width()
                             val height = barcode.boundingBox!!.height()
 
-                            Log.i(TAG, "configureCameraView: scale debug -> (w,h) = ($width,$height);")
+                            Log.i(TAG, "detectInImage: scale debug -> (w,h) = ($width,$height);")
 
                             if (height / width.toFloat() > 0.3f) {
                                 camera_overlay.clear()
@@ -118,13 +118,12 @@ class DetectionActivity : AppCompatActivity() {
                         }
 
                     }
-                    .addOnFailureListener { Log.e(TAG, "configureCameraView -> something went wrong: ${it.printStackTrace()}") }
+                    .addOnFailureListener { Log.e(TAG, "detectInImage -> something went wrong: ${it.printStackTrace()}") }
 
 
         }
 
         camera_view.visibility = View.VISIBLE
-        camera_view.facing
     }
 
     private fun configureBarcodeDetector() {
