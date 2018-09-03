@@ -22,7 +22,8 @@ class DetectionActivity : AppCompatActivity() {
     private lateinit var _detector: FirebaseVisionBarcodeDetector
     private lateinit var _barcodeGraphic: BarcodeGraphic
 
-    private var missedBarcodeFrames = 0
+    private var _missedBarcodeFrames = 0
+    private var _maxMissedBarcodeFrames = 2
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,9 +65,9 @@ class DetectionActivity : AppCompatActivity() {
     private fun configureCameraView() {
         _barcodeGraphic = BarcodeGraphic(camera_overlay)
 
-        camera_view.addFrameProcessor {
+        camera_view.addFrameProcessor { frame ->
 
-            Log.d(TAG, "configureCameraView: frame = ${it.format}, ${it.rotation}")
+            Log.d(TAG, "configureCameraView: frame = ${frame.format}, ${frame.rotation}")
 
             if (it.format == -1) {
                 Log.d(TAG, "configureCameraView: invalid format")
@@ -74,47 +75,50 @@ class DetectionActivity : AppCompatActivity() {
             }
 
             val meta = FirebaseVisionImageMetadata.Builder()
-                    .setFormat(it.format)
-                    .setHeight(it.size.height)
-                    .setWidth(it.size.width)
-                    .setRotation(it.rotation / 90)
+                    .setFormat(frame.format)
+                    .setHeight(frame.size.height)
+                    .setWidth(frame.size.width)
+                    .setRotation(frame.rotation / 90)
                     .build()
 
-            val firebaseImage = FirebaseVisionImage.fromByteArray(it.data, meta)
+            val firebaseImage = FirebaseVisionImage.fromByteArray(frame.data, meta)
 
 
             _detector.detectInImage(firebaseImage)
                     .addOnSuccessListener { barcodes ->
 
-                        for (barcode in barcodes) {
-                            Log.i(TAG, "configureCameraView -> value = ${barcode.displayValue}, rect = ${barcode.boundingBox}")
-                            _barcodeGraphic.updateBarcode(barcode = barcode)
+                        if (barcodes.size == 0) {
+                            _missedBarcodeFrames++
 
-                            if (barcode.boundingBox!!.width() / barcode.boundingBox!!.height().toFloat() > 5f) {
+                            if (_missedBarcodeFrames > _maxMissedBarcodeFrames) {
+                                _missedBarcodeFrames = 0
+                                camera_overlay.clear()
+                            }
+                            Log.d(TAG, "configureCameraView -> no value detected.")
+                            this@DetectionActivity.runOnUiThread { barcode_value.text = "" }
+
+                        }
+                        else {
+                            val barcode = barcodes[0]
+                            _barcodeGraphic.updateBarcode(barcode)
+
+                            val width = barcode.boundingBox!!.width()
+                            val height = barcode.boundingBox!!.height()
+
+                            Log.i(TAG, "configureCameraView: scale debug -> (w,h) = ($width,$height);")
+
+                            if (height / width.toFloat() > 0.3f) {
                                 camera_overlay.clear()
                                 camera_overlay.add(_barcodeGraphic)
 
-                                missedBarcodeFrames = 0
+                                _missedBarcodeFrames = 0
 
                                 this@DetectionActivity.runOnUiThread { barcode_value.text = barcode.displayValue }
                             }
                         }
 
-                        if (barcodes.size == 0) {
-                            missedBarcodeFrames++
-
-                            if (missedBarcodeFrames > 2) {
-                                missedBarcodeFrames = 0
-                                camera_overlay.clear()
-                            }
-                            Log.i(TAG, "configureCameraView -> no value")
-                            this@DetectionActivity.runOnUiThread { barcode_value.text = "" }
-                        }
                     }
-                    .addOnFailureListener { e ->
-                        e.printStackTrace()
-                        Log.e(TAG, "configureCameraView -> something went wrong")
-                    }
+                    .addOnFailureListener { Log.e(TAG, "configureCameraView -> something went wrong: ${it.printStackTrace()}") }
 
 
         }
