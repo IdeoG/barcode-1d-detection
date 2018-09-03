@@ -5,6 +5,7 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
 import com.google.firebase.ml.vision.barcode.FirebaseVisionBarcode
+import kotlin.math.abs
 
 class BarcodeGraphic(overlay: GraphicOverlay) : GraphicOverlay.Graphic(overlay) {
     @Volatile
@@ -14,7 +15,7 @@ class BarcodeGraphic(overlay: GraphicOverlay) : GraphicOverlay.Graphic(overlay) 
     private val _filledBoxPaint = Paint()
 
     init {
-        _boxPaint.color = Color.WHITE
+        _boxPaint.color = Color.RED
         _boxPaint.style = Paint.Style.STROKE
         _boxPaint.strokeWidth = BOX_STROKE_WIDTH
 
@@ -44,21 +45,39 @@ class BarcodeGraphic(overlay: GraphicOverlay) : GraphicOverlay.Graphic(overlay) 
         val x4 = translateX(rect[3].x.toFloat())
         val y4 = translateY(rect[3].y.toFloat())
 
-        drawTrapeze(canvas, _filledBoxPaint,
-                x1, y1, x2, y2,
-                x3, y3, x4, y4)
+        drawScaledTrapeze(canvas, _filledBoxPaint, 1.4f, 1.2f,
+                x1, y1, x2, y2, x3, y3, x4, y4)
+
+        drawTrapeze(canvas, _boxPaint, x1, y1, x2, y2, x3, y3, x4, y4)
     }
 
     companion object {
         private const val BOX_STROKE_WIDTH = 5.0f
     }
 
-    private fun drawTrapeze(canvas: Canvas, paint: Paint,
-                    x1: Float, y1: Float,
-                    x2: Float, y2: Float,
-                    x3: Float, y3: Float,
-                    x4: Float, y4: Float) {
+    private fun drawScaledTrapeze(canvas: Canvas, paint: Paint, scaleX: Float, scaleY: Float,
+                    x1: Float, y1: Float, x2: Float, y2: Float,
+                    x3: Float, y3: Float, x4: Float, y4: Float) {
 
+        val topOffset = abs(x1- x2) * (scaleX - 1f) / 2f
+        val bottomOffset = abs(x3- x4) * (scaleX - 1f) / 2f
+
+        val leftOffset = abs(y1 - y4) * (scaleY - 1f) / 2f
+        val rightOffset = abs(y2- y3) * (scaleY - 1f) / 2f
+
+        val path = Path()
+        path.moveTo(x1 - topOffset, y1 - leftOffset)
+        path.lineTo(x2 + topOffset, y2 - rightOffset)
+        path.lineTo(x3 + bottomOffset, y3 + rightOffset)
+        path.lineTo(x4 - bottomOffset, y4 + leftOffset)
+        path.close()
+
+        canvas.drawPath(path, paint)
+    }
+
+    private fun drawTrapeze(canvas: Canvas, paint: Paint,
+                                  x1: Float, y1: Float, x2: Float, y2: Float,
+                                  x3: Float, y3: Float, x4: Float, y4: Float) {
         val path = Path()
         path.moveTo(x1, y1)
         path.lineTo(x2, y2)
